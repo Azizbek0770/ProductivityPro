@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import ToolGrid from '../components/ToolGrid';
 import PomodoroTimer from '../components/PomodoroTimer';
@@ -18,7 +19,6 @@ import Footer from '../components/Footer';
 import StickyCTA from '../components/StickyCTA';
 import OnboardingModal from '../components/OnboardingModal';
 import ReferFriendModal from '../components/ReferFriendModal';
-import Navbar from '../components/Navbar';
 
 const Home: React.FC = () => {
   const [referOpen, setReferOpen] = useState(false);

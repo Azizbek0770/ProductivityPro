@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  FaClock, FaTasks, FaStickyNote, FaCalendarAlt, FaChartLine, 
-  FaUsers, FaPenFancy, FaMicrophone, FaMedal, FaSearch, 
-  FaShieldAlt, FaStopwatch, FaLock, FaUnlock, FaUpload, FaBook, FaBookOpen, FaChartPie 
+import {
+  FaClock, FaTasks, FaStickyNote, FaCalendarAlt, FaChartLine,
+  FaUsers, FaPenFancy, FaMicrophone, FaMedal, FaSearch,
+  FaShieldAlt, FaStopwatch, FaLock, FaUnlock, FaUpload, FaBook, FaBookOpen, FaChartPie
 } from 'react-icons/fa';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useUser } from '../context/UserContext';
@@ -22,9 +22,8 @@ import CountdownTimer from './CountdownTimer';
 import Journal from './Journal';
 import ToReadList from './ToReadList';
 import TimeAudit from './TimeAudit';
-import { motion, useAnimation, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import SkeletonLoader from './ui/SkeletonLoader';
-import React, { useRef } from 'react';
 
 interface Tool {
   id: string;
@@ -179,42 +178,17 @@ const ToolGrid: React.FC = () => {
   const { toast } = useToast();
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
-  const controls = useAnimation();
 
   React.useEffect(() => {
     const timeout = setTimeout(() => setLoading(false), 900);
     return () => clearTimeout(timeout);
   }, []);
 
-  React.useEffect(() => {
-    if (inView) controls.start('visible');
-  }, [inView, controls]);
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: i * 0.08, duration: 0.5, type: 'spring' }
-    })
-  };
-
   // Define unlockable tool count by tier
   const tierUnlocks: Record<string, number> = {
     basic: 4,
     standard: 8,
     pro: tools.length
-  };
-
-  const getTierLevel = (tier: 'basic' | 'standard' | 'pro'): number => {
-    switch (tier) {
-      case 'basic': return 1;
-      case 'standard': return 2;
-      case 'pro': return 3;
-      default: return 1;
-    }
   };
 
   // Only unlock the first N tools for the current tier
@@ -254,36 +228,21 @@ const ToolGrid: React.FC = () => {
 
   const renderToolContent = (toolId: string) => {
     switch (toolId) {
-      case 'pomodoro':
-        return <PomodoroTimer />;
-      case 'voice':
-        return <VoiceRecorder />;
-      case 'habits':
-        return <HabitTracker />;
-      case 'tasks':
-        return <TaskManager />;
-      case 'notes':
-        return <SmartNotes />;
-      case 'calendar':
-        return <Calendar />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-      case 'team':
-        return <TeamCollab />;
-      case 'ai-writing':
-        return <AIWritingAssistant />;
-      case 'file-uploader':
-        return <FileUploader />;
-      case 'countdown':
-        return <CountdownTimer />;
-      case 'journal':
-        return <Journal />;
-      case 'to-read':
-        return <ToReadList />;
-      case 'time-audit':
-        return <TimeAudit />;
-      default:
-        return null;
+      case 'pomodoro': return <PomodoroTimer />;
+      case 'voice': return <VoiceRecorder />;
+      case 'habits': return <HabitTracker />;
+      case 'tasks': return <TaskManager />;
+      case 'notes': return <SmartNotes />;
+      case 'calendar': return <Calendar />;
+      case 'analytics': return <AnalyticsDashboard />;
+      case 'team': return <TeamCollab />;
+      case 'ai-writing': return <AIWritingAssistant />;
+      case 'file-uploader': return <FileUploader />;
+      case 'countdown': return <CountdownTimer />;
+      case 'journal': return <Journal />;
+      case 'to-read': return <ToReadList />;
+      case 'time-audit': return <TimeAudit />;
+      default: return null;
     }
   };
 
@@ -303,7 +262,7 @@ const ToolGrid: React.FC = () => {
             Current Plan: {tier.charAt(0).toUpperCase() + tier.slice(1)}
           </div>
         </div>
-        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {loading
             ? Array.from({ length: 12 }).map((_, i) => (
                 <SkeletonLoader key={i} className="h-48 w-full mb-2" />
@@ -314,18 +273,17 @@ const ToolGrid: React.FC = () => {
                 return (
                   <motion.div
                     key={tool.id}
-                    custom={idx}
-                    initial="hidden"
-                    animate={controls}
-                    variants={cardVariants}
-                    className={`relative bg-white/25 backdrop-blur-[10px] border border-white/18 p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer ${!unlocked ? 'opacity-70 blur-sm' : ''}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                    className={`relative bg-white/25 border border-white/18 p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer`}
                     onClick={() => handleToolClick(tool, idx)}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} rounded-xl flex items-center justify-center relative`}>
                         <Icon className="text-white text-xl" />
                         {!unlocked && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl">
                             <FaLock className="text-white text-sm" />
                           </div>
                         )}
@@ -337,7 +295,7 @@ const ToolGrid: React.FC = () => {
                           <FaLock className="text-gray-400 text-sm" />
                         )}
                         <span className={`text-xs font-medium ml-1 ${unlocked ? 'text-green-500' : 'text-gray-400'}`}>
-                          {tool.requiredTier}
+                          {tool.requiredTier.charAt(0).toUpperCase() + tool.requiredTier.slice(1)}
                         </span>
                       </div>
                     </div>
@@ -346,7 +304,7 @@ const ToolGrid: React.FC = () => {
                     <button
                       className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${unlocked ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:shadow-lg' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
                     >
-                      {unlocked ? 'Open' : 'Unlock'}
+                      {unlocked ? 'Open' : 'Upgrade to Unlock'}
                     </button>
                     {!unlocked && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
