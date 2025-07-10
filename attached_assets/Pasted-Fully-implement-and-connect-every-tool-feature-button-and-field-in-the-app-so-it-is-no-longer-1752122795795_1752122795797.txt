@@ -1,0 +1,45 @@
+Fully implement and connect **every tool, feature, button, and field** in the app so it is no longer demo or fake. Use React with TypeScript (.tsx) and Tailwind. Everything must be fully coded with real logic.
+
+🎯 1. Tool Functionality:
+- Create real logic for each tool in `ToolGrid`:
+  - PomodoroTimer: timer, break/reset logic
+  - TaskManager: add/edit/delete tasks, save to `localStorage`
+  - SmartNotes: note editor with title/content, saved to `localStorage`
+  - Calendar: interactive calendar using `react-calendar` or similar
+  - Analytics: fake chart using dummy data + `recharts`
+  - TeamCollab: simulated message board or Kanban UI
+  - AIWritingAssistant: use OpenAI API if key present, or fake it with prompts
+  - VoiceRecorder: use browser `MediaRecorder`
+  - HabitTracker: daily checkbox grid with `localStorage` persistence
+
+🧠 2. Inputs + Fields:
+- Make all forms actually functional:
+  - EmailSignup: send data via Formspree/MailerLite using `.env`
+  - Referral field: generate + copy real UUID-based link
+  - Invite button: simulate invite with tier upgrade when inviteCount reaches 2 or 5
+
+🔐 3. Unlock Logic:
+- If tool is locked, button = “Unlock” → scroll to PricingTiers
+- If tool is unlocked, button = “Open” → shows modal or loads tool component
+
+📦 4. Context + State:
+- User tier and invite count are tracked in `UserContext.tsx`
+- Save `userTier` and `inviteCount` to `localStorage`
+- Restore on app load
+- Re-render UI based on tier
+
+💳 5. Payments:
+- In PricingTiers, clicking upgrade simulates Stripe/Gumroad success
+- On click → upgrade tier + update context + toast message
+
+🧪 6. Everything Must Work:
+- No dummy buttons
+- No placeholder alerts unless tool is intentionally not implemented
+- Show real modals, toasts, or component states
+
+📱 7. Responsive and Smooth:
+- Keep animations, hover effects, transitions
+- Ensure tools are mobile-friendly
+
+✅ Final Result:
+The app must feel like a fully working productivity platform with real usable tools and no fake placeholders or broken parts. Make it real.
