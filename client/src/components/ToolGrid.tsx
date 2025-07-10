@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { 
   FaClock, FaTasks, FaStickyNote, FaCalendarAlt, FaChartLine, 
   FaUsers, FaPenFancy, FaMicrophone, FaMedal, FaSearch, 
-  FaShieldAlt, FaStopwatch, FaLock, FaUnlock 
+  FaShieldAlt, FaStopwatch, FaLock, FaUnlock, FaUpload, FaBook, FaBookOpen, FaChartPie 
 } from 'react-icons/fa';
+import { useSubscription } from '../context/SubscriptionContext';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../hooks/use-toast';
 import ToolModal from './ToolModal';
@@ -16,6 +17,14 @@ import Calendar from './Calendar';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import TeamCollab from './TeamCollab';
 import AIWritingAssistant from './AIWritingAssistant';
+import FileUploader from './FileUploader';
+import CountdownTimer from './CountdownTimer';
+import Journal from './Journal';
+import ToReadList from './ToReadList';
+import TimeAudit from './TimeAudit';
+import { motion, useAnimation, useInView } from 'framer-motion';
+import SkeletonLoader from './ui/SkeletonLoader';
+import React, { useRef } from 'react';
 
 interface Tool {
   id: string;
@@ -122,13 +131,82 @@ const tools: Tool[] = [
     icon: FaStopwatch,
     requiredTier: 'basic',
     gradient: 'from-secondary to-accent'
+  },
+  {
+    id: 'file-uploader',
+    name: 'File Uploader',
+    description: 'Drag and drop files, view uploads, Supabase storage ready.',
+    icon: FaUpload,
+    requiredTier: 'standard',
+    gradient: 'from-primary to-secondary'
+  },
+  {
+    id: 'countdown',
+    name: 'Countdown Timer',
+    description: 'Track event countdowns with custom labels.',
+    icon: FaClock,
+    requiredTier: 'standard',
+    gradient: 'from-accent to-primary'
+  },
+  {
+    id: 'journal',
+    name: 'Journal',
+    description: 'Daily entries, private mode, mood selector.',
+    icon: FaBook,
+    requiredTier: 'pro',
+    gradient: 'from-secondary to-accent'
+  },
+  {
+    id: 'to-read',
+    name: 'To-Read List',
+    description: 'Add links/books, mark as read, rate items.',
+    icon: FaBookOpen,
+    requiredTier: 'standard',
+    gradient: 'from-primary to-secondary'
+  },
+  {
+    id: 'time-audit',
+    name: 'Time Audit',
+    description: 'Manual pie chart tracker for daily time use.',
+    icon: FaChartPie,
+    requiredTier: 'pro',
+    gradient: 'from-accent to-primary'
   }
 ];
 
 const ToolGrid: React.FC = () => {
-  const { userTier } = useUser();
+  const { tier } = useSubscription();
   const { toast } = useToast();
   const [openModal, setOpenModal] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-100px' });
+  const controls = useAnimation();
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  React.useEffect(() => {
+    if (inView) controls.start('visible');
+  }, [inView, controls]);
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.08, duration: 0.5, type: 'spring' }
+    })
+  };
+
+  // Define unlockable tool count by tier
+  const tierUnlocks: Record<string, number> = {
+    basic: 4,
+    standard: 8,
+    pro: tools.length
+  };
 
   const getTierLevel = (tier: 'basic' | 'standard' | 'pro'): number => {
     switch (tier) {
@@ -139,8 +217,11 @@ const ToolGrid: React.FC = () => {
     }
   };
 
-  const isToolUnlocked = (tool: Tool): boolean => {
-    return getTierLevel(userTier) >= getTierLevel(tool.requiredTier);
+  // Only unlock the first N tools for the current tier
+  const isToolUnlocked = (tool: Tool, idx: number): boolean => {
+    if (tier === 'pro') return true;
+    if (tier === 'standard') return idx < tierUnlocks['standard'];
+    return idx < tierUnlocks['basic'];
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -150,22 +231,24 @@ const ToolGrid: React.FC = () => {
     }
   };
 
-  const handleToolClick = (tool: Tool) => {
-    if (isToolUnlocked(tool)) {
+  const handleToolClick = (tool: Tool, idx: number) => {
+    const unlocked = isToolUnlocked(tool, idx);
+    if (unlocked) {
       setOpenModal(tool.id);
       toast({
-        title: "Opening Tool",
-        description: `Opening ${tool.name}...`,
+        title: `Opening ${tool.name}`,
+        description: `${tool.name} is now active.`,
         duration: 2000,
       });
     } else {
+      toast({
+        title: 'Upgrade Required',
+        description: `${tool.name} is locked. Upgrade your plan to unlock this tool!`,
+        duration: 3000,
+        variant: 'destructive',
+      });
       const upgradeSection = Math.random() > 0.5 ? 'pricing' : 'invite';
       scrollToSection(upgradeSection);
-      toast({
-        title: "Tool Locked",
-        description: `${tool.name} requires ${tool.requiredTier} tier. Check pricing or invite friends!`,
-        duration: 3000,
-      });
     }
   };
 
@@ -189,6 +272,16 @@ const ToolGrid: React.FC = () => {
         return <TeamCollab />;
       case 'ai-writing':
         return <AIWritingAssistant />;
+      case 'file-uploader':
+        return <FileUploader />;
+      case 'countdown':
+        return <CountdownTimer />;
+      case 'journal':
+        return <Journal />;
+      case 'to-read':
+        return <ToReadList />;
+      case 'time-audit':
+        return <TimeAudit />;
       default:
         return null;
     }
@@ -207,62 +300,64 @@ const ToolGrid: React.FC = () => {
             Access 12 premium productivity tools designed to streamline your workflow and boost efficiency.
           </p>
           <div className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-secondary rounded-full text-primary-foreground font-medium">
-            Current Plan: {userTier.charAt(0).toUpperCase() + userTier.slice(1)}
+            Current Plan: {tier.charAt(0).toUpperCase() + tier.slice(1)}
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {tools.map((tool) => {
-            const Icon = tool.icon;
-            const isUnlocked = isToolUnlocked(tool);
-            
-            return (
-              <div
-                key={tool.id}
-                className={`bg-white/25 backdrop-blur-[10px] border border-white/18 p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer ${
-                  !isUnlocked ? 'opacity-70 blur-sm' : ''
-                }`}
-                onClick={() => handleToolClick(tool)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} rounded-xl flex items-center justify-center relative`}>
-                    <Icon className="text-white text-xl" />
-                    {!isUnlocked && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
-                        <FaLock className="text-white text-sm" />
+        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {loading
+            ? Array.from({ length: 12 }).map((_, i) => (
+                <SkeletonLoader key={i} className="h-48 w-full mb-2" />
+              ))
+            : tools.map((tool, idx) => {
+                const Icon = tool.icon;
+                const unlocked = isToolUnlocked(tool, idx);
+                return (
+                  <motion.div
+                    key={tool.id}
+                    custom={idx}
+                    initial="hidden"
+                    animate={controls}
+                    variants={cardVariants}
+                    className={`relative bg-white/25 backdrop-blur-[10px] border border-white/18 p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer ${!unlocked ? 'opacity-70 blur-sm' : ''}`}
+                    onClick={() => handleToolClick(tool, idx)}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} rounded-xl flex items-center justify-center relative`}>
+                        <Icon className="text-white text-xl" />
+                        {!unlocked && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                            <FaLock className="text-white text-sm" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center">
+                        {unlocked ? (
+                          <FaUnlock className="text-green-500 text-sm" />
+                        ) : (
+                          <FaLock className="text-gray-400 text-sm" />
+                        )}
+                        <span className={`text-xs font-medium ml-1 ${unlocked ? 'text-green-500' : 'text-gray-400'}`}>
+                          {tool.requiredTier}
+                        </span>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{tool.name}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">{tool.description}</p>
+                    <button
+                      className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${unlocked ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:shadow-lg' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+                    >
+                      {unlocked ? 'Open' : 'Unlock'}
+                    </button>
+                    {!unlocked && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+                        <span className="bg-white/80 text-primary px-3 py-1 rounded-full font-semibold text-xs animate-pulse">Upgrade to unlock</span>
                       </div>
                     )}
-                  </div>
-                  <div className="flex items-center">
-                    {isUnlocked ? (
-                      <FaUnlock className="text-green-500 text-sm" />
-                    ) : (
-                      <FaLock className="text-gray-400 text-sm" />
-                    )}
-                    <span className={`text-xs font-medium ml-1 ${
-                      isUnlocked ? 'text-green-500' : 'text-gray-400'
-                    }`}>
-                      {tool.requiredTier}
-                    </span>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">{tool.name}</h3>
-                <p className="text-muted-foreground text-sm mb-4">{tool.description}</p>
-                <button
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
-                    isUnlocked
-                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:shadow-lg'
-                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  }`}
-                >
-                  {isUnlocked ? 'Open' : 'Unlock'}
-                </button>
-              </div>
-            );
-          })}
+                  </motion.div>
+                );
+              })}
         </div>
       </div>
-      
       {/* Tool Modal */}
       <ToolModal
         isOpen={openModal !== null}
