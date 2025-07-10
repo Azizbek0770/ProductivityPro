@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaMedal, FaFire, FaCheck } from 'react-icons/fa';
+import { useToast } from '../hooks/use-toast';
 
 interface Habit {
   id: string;
@@ -11,7 +12,8 @@ interface Habit {
 }
 
 const HabitTracker: React.FC = () => {
-  const [habits] = useState<Habit[]>([
+  const { toast } = useToast();
+  const [habits, setHabits] = useState<Habit[]>([
     {
       id: '1',
       name: 'Daily Exercise',
@@ -54,6 +56,32 @@ const HabitTracker: React.FC = () => {
       case 'personal': return 'bg-pink-100 text-pink-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const toggleHabit = (habitId: string) => {
+    setHabits(prevHabits => 
+      prevHabits.map(habit => {
+        if (habit.id === habitId) {
+          const newCompleted = !habit.completed;
+          const newStreak = newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1);
+          
+          toast({
+            title: newCompleted ? "Habit Completed!" : "Habit Unchecked",
+            description: newCompleted 
+              ? `Great job! ${habit.name} streak: ${newStreak} days` 
+              : `${habit.name} marked as incomplete`,
+            duration: 3000,
+          });
+          
+          return {
+            ...habit,
+            completed: newCompleted,
+            streak: newStreak
+          };
+        }
+        return habit;
+      })
+    );
   };
 
   return (
@@ -99,9 +127,14 @@ const HabitTracker: React.FC = () => {
                 >
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-semibold text-foreground">{habit.name}</h4>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${habit.completed ? 'bg-green-500' : 'bg-gray-300'}`}>
+                    <button
+                      onClick={() => toggleHabit(habit.id)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
+                        habit.completed ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 hover:bg-gray-400'
+                      }`}
+                    >
                       {habit.completed && <FaCheck className="text-white text-sm" />}
-                    </div>
+                    </button>
                   </div>
                   
                   <div className="flex items-center justify-between text-sm">

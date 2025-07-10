@@ -2,16 +2,17 @@ import React from 'react';
 import { 
   FaClock, FaTasks, FaStickyNote, FaCalendarAlt, FaChartLine, 
   FaUsers, FaPenFancy, FaMicrophone, FaMedal, FaSearch, 
-  FaShieldAlt, FaStopwatch, FaLock 
+  FaShieldAlt, FaStopwatch, FaLock, FaUnlock 
 } from 'react-icons/fa';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../hooks/use-toast';
 
 interface Tool {
   id: string;
   name: string;
   description: string;
   icon: React.ElementType;
-  status: 'active' | 'pro' | 'premium';
+  requiredTier: 'basic' | 'standard' | 'pro';
   gradient: string;
 }
 
@@ -21,7 +22,7 @@ const tools: Tool[] = [
     name: 'Pomodoro Timer',
     description: 'Focus sessions with smart breaks and productivity tracking.',
     icon: FaClock,
-    status: 'active',
+    requiredTier: 'basic',
     gradient: 'from-primary to-secondary'
   },
   {
@@ -29,7 +30,7 @@ const tools: Tool[] = [
     name: 'Task Manager',
     description: 'Organize, prioritize, and track all your tasks in one place.',
     icon: FaTasks,
-    status: 'active',
+    requiredTier: 'standard',
     gradient: 'from-accent to-primary'
   },
   {
@@ -37,7 +38,7 @@ const tools: Tool[] = [
     name: 'Smart Notes',
     description: 'AI-powered note-taking with smart search and organization.',
     icon: FaStickyNote,
-    status: 'active',
+    requiredTier: 'standard',
     gradient: 'from-secondary to-accent'
   },
   {
@@ -45,7 +46,7 @@ const tools: Tool[] = [
     name: 'Smart Calendar',
     description: 'Intelligent scheduling with conflict detection and optimization.',
     icon: FaCalendarAlt,
-    status: 'active',
+    requiredTier: 'standard',
     gradient: 'from-primary to-secondary'
   },
   {
@@ -53,7 +54,7 @@ const tools: Tool[] = [
     name: 'Analytics Dashboard',
     description: 'Deep insights into your productivity patterns and trends.',
     icon: FaChartLine,
-    status: 'pro',
+    requiredTier: 'pro',
     gradient: 'from-accent to-primary'
   },
   {
@@ -61,7 +62,7 @@ const tools: Tool[] = [
     name: 'Team Collaboration',
     description: 'Real-time collaboration with shared workspaces and chat.',
     icon: FaUsers,
-    status: 'pro',
+    requiredTier: 'pro',
     gradient: 'from-secondary to-accent'
   },
   {
@@ -69,7 +70,7 @@ const tools: Tool[] = [
     name: 'AI Writing Assistant',
     description: 'GPT-powered writing help with grammar and style suggestions.',
     icon: FaPenFancy,
-    status: 'premium',
+    requiredTier: 'pro',
     gradient: 'from-primary to-secondary'
   },
   {
@@ -77,7 +78,7 @@ const tools: Tool[] = [
     name: 'Voice Recorder',
     description: 'High-quality recording with auto-transcription and notes.',
     icon: FaMicrophone,
-    status: 'active',
+    requiredTier: 'pro',
     gradient: 'from-accent to-primary'
   },
   {
@@ -85,7 +86,7 @@ const tools: Tool[] = [
     name: 'Habit Tracker',
     description: 'Build lasting habits with streaks and achievement rewards.',
     icon: FaMedal,
-    status: 'active',
+    requiredTier: 'standard',
     gradient: 'from-secondary to-accent'
   },
   {
@@ -93,7 +94,7 @@ const tools: Tool[] = [
     name: 'Document Scanner',
     description: 'Scan and digitize documents with OCR text extraction.',
     icon: FaSearch,
-    status: 'pro',
+    requiredTier: 'pro',
     gradient: 'from-primary to-secondary'
   },
   {
@@ -101,7 +102,7 @@ const tools: Tool[] = [
     name: 'Password Manager',
     description: 'Secure password storage with auto-fill and generation.',
     icon: FaShieldAlt,
-    status: 'premium',
+    requiredTier: 'pro',
     gradient: 'from-accent to-primary'
   },
   {
@@ -109,28 +110,51 @@ const tools: Tool[] = [
     name: 'Time Tracker',
     description: 'Track time spent on projects with detailed reporting.',
     icon: FaStopwatch,
-    status: 'active',
+    requiredTier: 'basic',
     gradient: 'from-secondary to-accent'
   }
 ];
 
 const ToolGrid: React.FC = () => {
   const { userTier } = useUser();
+  const { toast } = useToast();
 
-  const getStatusBadge = (status: Tool['status']) => {
-    if (status === 'active') {
-      return (
-        <div className="flex items-center">
-          <span className="text-green-500 text-sm font-medium">Active</span>
-        </div>
-      );
+  const getTierLevel = (tier: 'basic' | 'standard' | 'pro'): number => {
+    switch (tier) {
+      case 'basic': return 1;
+      case 'standard': return 2;
+      case 'pro': return 3;
+      default: return 1;
     }
-    return (
-      <div className="flex items-center">
-        <FaLock className="text-gray-400 text-sm" />
-        <span className="text-gray-400 text-sm font-medium ml-1 capitalize">{status}</span>
-      </div>
-    );
+  };
+
+  const isToolUnlocked = (tool: Tool): boolean => {
+    return getTierLevel(userTier) >= getTierLevel(tool.requiredTier);
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleToolClick = (tool: Tool) => {
+    if (isToolUnlocked(tool)) {
+      toast({
+        title: "Opening Tool",
+        description: `Opening ${tool.name}...`,
+        duration: 2000,
+      });
+    } else {
+      const upgradeSection = Math.random() > 0.5 ? 'pricing' : 'invite';
+      scrollToSection(upgradeSection);
+      toast({
+        title: "Tool Locked",
+        description: `${tool.name} requires ${tool.requiredTier} tier. Check pricing or invite friends!`,
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -143,24 +167,57 @@ const ToolGrid: React.FC = () => {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Access 12 premium productivity tools designed to streamline your workflow and boost efficiency.
           </p>
+          <div className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-secondary rounded-full text-primary-foreground font-medium">
+            Current Plan: {userTier.charAt(0).toUpperCase() + userTier.slice(1)}
+          </div>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {tools.map((tool) => {
             const Icon = tool.icon;
+            const isUnlocked = isToolUnlocked(tool);
+            
             return (
               <div
                 key={tool.id}
-                className="bg-white/25 backdrop-blur-[10px] border border-white/18 p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                className={`bg-white/25 backdrop-blur-[10px] border border-white/18 p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer ${
+                  !isUnlocked ? 'opacity-70 blur-sm' : ''
+                }`}
+                onClick={() => handleToolClick(tool)}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} rounded-xl flex items-center justify-center`}>
+                  <div className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} rounded-xl flex items-center justify-center relative`}>
                     <Icon className="text-white text-xl" />
+                    {!isUnlocked && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                        <FaLock className="text-white text-sm" />
+                      </div>
+                    )}
                   </div>
-                  {getStatusBadge(tool.status)}
+                  <div className="flex items-center">
+                    {isUnlocked ? (
+                      <FaUnlock className="text-green-500 text-sm" />
+                    ) : (
+                      <FaLock className="text-gray-400 text-sm" />
+                    )}
+                    <span className={`text-xs font-medium ml-1 ${
+                      isUnlocked ? 'text-green-500' : 'text-gray-400'
+                    }`}>
+                      {tool.requiredTier}
+                    </span>
+                  </div>
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{tool.name}</h3>
-                <p className="text-muted-foreground text-sm">{tool.description}</p>
+                <p className="text-muted-foreground text-sm mb-4">{tool.description}</p>
+                <button
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
+                    isUnlocked
+                      ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:shadow-lg'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                >
+                  {isUnlocked ? 'Open' : 'Unlock'}
+                </button>
               </div>
             );
           })}

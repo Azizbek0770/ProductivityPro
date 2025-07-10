@@ -1,22 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaMicrophone, FaPlay, FaStop, FaPause } from 'react-icons/fa';
+import { useToast } from '../hooks/use-toast';
 
 const VoiceRecorder: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [hasRecording, setHasRecording] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isRecording]);
 
   const handleStartRecording = () => {
     setIsRecording(true);
     setRecordingTime(0);
+    setHasRecording(false);
+    toast({
+      title: "Recording Started",
+      description: "Speak clearly into your microphone",
+      duration: 2000,
+    });
   };
 
   const handleStopRecording = () => {
     setIsRecording(false);
+    setHasRecording(true);
+    toast({
+      title: "Recording Stopped",
+      description: `${formatTime(recordingTime)} recorded successfully`,
+      duration: 2000,
+    });
   };
 
   const handlePlayback = () => {
+    if (!hasRecording) {
+      toast({
+        title: "No Recording",
+        description: "Please record something first",
+        duration: 2000,
+      });
+      return;
+    }
+    
     setIsPlaying(!isPlaying);
+    toast({
+      title: isPlaying ? "Playback Paused" : "Playing Recording",
+      description: isPlaying ? "Playback paused" : "Playing your recording",
+      duration: 2000,
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -66,12 +107,23 @@ const VoiceRecorder: React.FC = () => {
                 
                 <button
                   onClick={handlePlayback}
-                  className="bg-white/25 backdrop-blur-[10px] border border-white/18 text-foreground px-6 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                  disabled={!hasRecording}
+                  className={`px-6 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 ${
+                    hasRecording 
+                      ? 'bg-white/25 backdrop-blur-[10px] border border-white/18 text-foreground' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   {isPlaying ? <FaPause className="mr-2" /> : <FaPlay className="mr-2" />}
                   {isPlaying ? 'Pause' : 'Play'}
                 </button>
               </div>
+              
+              {hasRecording && (
+                <div className="text-sm text-muted-foreground text-center">
+                  Recording ready for playback
+                </div>
+              )}
             </div>
             
             <div className="bg-white/50 p-6 rounded-xl shadow-inner">
