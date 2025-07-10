@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   FaClock, FaTasks, FaStickyNote, FaCalendarAlt, FaChartLine, 
   FaUsers, FaPenFancy, FaMicrophone, FaMedal, FaSearch, 
@@ -6,6 +6,16 @@ import {
 } from 'react-icons/fa';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../hooks/use-toast';
+import ToolModal from './ToolModal';
+import PomodoroTimer from './PomodoroTimer';
+import VoiceRecorder from './VoiceRecorder';
+import HabitTracker from './HabitTracker';
+import TaskManager from './TaskManager';
+import SmartNotes from './SmartNotes';
+import Calendar from './Calendar';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import TeamCollab from './TeamCollab';
+import AIWritingAssistant from './AIWritingAssistant';
 
 interface Tool {
   id: string;
@@ -118,6 +128,7 @@ const tools: Tool[] = [
 const ToolGrid: React.FC = () => {
   const { userTier } = useUser();
   const { toast } = useToast();
+  const [openModal, setOpenModal] = useState<string | null>(null);
 
   const getTierLevel = (tier: 'basic' | 'standard' | 'pro'): number => {
     switch (tier) {
@@ -141,6 +152,7 @@ const ToolGrid: React.FC = () => {
 
   const handleToolClick = (tool: Tool) => {
     if (isToolUnlocked(tool)) {
+      setOpenModal(tool.id);
       toast({
         title: "Opening Tool",
         description: `Opening ${tool.name}...`,
@@ -156,6 +168,33 @@ const ToolGrid: React.FC = () => {
       });
     }
   };
+
+  const renderToolContent = (toolId: string) => {
+    switch (toolId) {
+      case 'pomodoro':
+        return <PomodoroTimer />;
+      case 'voice':
+        return <VoiceRecorder />;
+      case 'habits':
+        return <HabitTracker />;
+      case 'tasks':
+        return <TaskManager />;
+      case 'notes':
+        return <SmartNotes />;
+      case 'calendar':
+        return <Calendar />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
+      case 'team':
+        return <TeamCollab />;
+      case 'ai-writing':
+        return <AIWritingAssistant />;
+      default:
+        return null;
+    }
+  };
+
+  const getToolByName = (id: string) => tools.find(tool => tool.id === id)?.name || 'Tool';
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
@@ -223,6 +262,15 @@ const ToolGrid: React.FC = () => {
           })}
         </div>
       </div>
+      
+      {/* Tool Modal */}
+      <ToolModal
+        isOpen={openModal !== null}
+        onClose={() => setOpenModal(null)}
+        toolName={getToolByName(openModal || '')}
+      >
+        {openModal && renderToolContent(openModal)}
+      </ToolModal>
     </section>
   );
 };

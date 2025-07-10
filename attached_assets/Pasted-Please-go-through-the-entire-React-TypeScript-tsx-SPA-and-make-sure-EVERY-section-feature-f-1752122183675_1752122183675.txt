@@ -1,0 +1,48 @@
+Please go through the entire React + TypeScript (.tsx) SPA and make sure **EVERY section, feature, field, input, and button is fully functional** and correctly wired. This is a final QA + revive pass.
+
+🎯 1. Buttons:
+- All “Open” buttons on unlocked tools trigger a fake modal or `alert("Opening Tool: [tool name]")`
+- All “Unlock” buttons on locked tools scroll to `PricingTiers` or show `alert("Upgrade to unlock")`
+- "Copy referral link" buttons must copy to clipboard and show toast or alert
+- All "Upgrade" buttons in StickyCTA and PricingTiers must set `userTier` accordingly and update context
+
+🧠 2. Inputs & Forms:
+- Email form should submit using Formspree or MailerLite endpoint (`import.meta.env`)
+- Validate input, show success message (e.g., “Freebie sent!”)
+- Referral link input field should be functional with `copy` support
+- Invite button should simulate increasing `inviteCount` and upgrade tier if threshold hit
+
+🔐 3. Context:
+- `userTier` and `inviteCount` must update in real-time via `useContext(UserContext)`
+- Persist both to `localStorage` on change, and restore on reload
+- Changing tier should immediately unlock tools in ToolGrid
+
+🛠️ 4. Modal or Simulated Popups:
+- Clicking “Open” tool should show a popup/modal or at least an `alert`
+- Optional: Create `ToolModal.tsx` to simulate tool previews
+- Close modal button must work
+
+🎨 5. UI Feedback:
+- Add toasts or alerts on key actions:
+  - “Copied!”
+  - “Tool unlocked!”
+  - “Upgrade required”
+  - “Invite sent!”
+  - “Thanks for signing up!”
+- Use smooth transitions (`transition-all`, `ease-in-out`, `duration-300`)
+
+📦 6. Logic Fixes:
+- If `inviteCount >= 2` → `userTier = standard`
+- If `inviteCount >= 5` → `userTier = pro`
+- Update grid dynamically when tier changes
+- Pro badge (🌟) should show if tier is "pro"
+
+💬 7. AdPlaceholder:
+- Add a visible box that says "Ad Placeholder"
+- Leave comment for where AdSense script would go
+
+✅ Final Step:
+- Test all interactions: open tools, upgrade, copy links, invite friends, submit email form
+- Ensure every component exports cleanly and app loads with no errors or warnings
+
+Make this app fully alive — everything working, every interaction smooth, every field functional. This is the final touch to launch-ready status.

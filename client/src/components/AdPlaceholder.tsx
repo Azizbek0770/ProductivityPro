@@ -9,10 +9,17 @@ const AdPlaceholder: React.FC = () => {
           <div className="w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center mx-auto mb-4">
             <FaAd className="text-white text-2xl" />
           </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">Advertisement Space</h3>
-          <p className="text-muted-foreground">
+          <h3 className="text-xl font-semibold text-foreground mb-2">Ad Placeholder</h3>
+          <p className="text-muted-foreground mb-4">
             Partner with us to reach productivity-focused professionals
           </p>
+          <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-6 text-gray-500 text-sm">
+            {/* AdSense script would go here */}
+            <div className="text-center">
+              <p className="font-mono">Ad Content Would Display Here</p>
+              <p className="text-xs mt-2">Google AdSense • Sponsored Content</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

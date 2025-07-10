@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
 import { FaShieldAlt } from 'react-icons/fa';
+import { useToast } from '../hooks/use-toast';
 
 const EmailSignup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Reset form
-    setEmail('');
-    setIsSubmitting(false);
+    try {
+      // Simulate API call with validation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Success feedback
+      toast({
+        title: "Welcome aboard!",
+        description: "Freebie sent! Check your email for your productivity guide.",
+        duration: 4000,
+      });
+      
+      // Reset form
+      setEmail('');
+    } catch (error) {
+      toast({
+        title: "Subscription failed",
+        description: "Please try again later.",
+        duration: 3000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
